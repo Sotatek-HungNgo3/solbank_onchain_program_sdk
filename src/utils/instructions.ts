@@ -10,7 +10,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
-import {POOL_PROGRAM_ID} from 'index';
+import {POOL_PROGRAM_ID} from '../../index';
 import {InitPoolLayout, PoolLayout} from './contractLayout';
 import * as Layout from './layout';
 import {Numberu64} from './layout';

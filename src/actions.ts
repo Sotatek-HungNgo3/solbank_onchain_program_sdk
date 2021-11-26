@@ -9,7 +9,7 @@ import {
   Transaction,
 } from '@solana/web3.js';
 import Decimal from 'decimal.js';
-import {IExtractPoolData, Instructions, PoolLayout, POOL_PROGRAM_ID} from 'index';
+import {IExtractPoolData, Instructions, PoolLayout, POOL_PROGRAM_ID} from '../index';
 
 export class Actions {
   private connection: Connection;
