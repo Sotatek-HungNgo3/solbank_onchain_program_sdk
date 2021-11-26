@@ -1,0 +1,11 @@
+package.json
+package-lock.json
+deploy/
+/dist
+doc/
+node_modules/
+*.yml
+*.md
+config/*
+*.json
+.nyc_output/

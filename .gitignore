@@ -1,0 +1,28 @@
+.DS_Store
+
+# dependencies
+/node_modules
+
+# IDE
+/.idea
+/.awcache
+/.vscode
+/.history
+
+# misc
+npm-debug.log
+newrelic_agent.log
+
+# example
+/quick-start
+
+# tests
+/test
+/coverage
+/.nyc_output
+
+# dist
+.env
+swagger.json
+/dist
+
