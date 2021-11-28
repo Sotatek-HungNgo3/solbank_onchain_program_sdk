@@ -512,9 +512,15 @@ export class Actions {
         }),
       );
 
+      const rawTx = transaction.serialize({
+        requireAllSignatures: false,
+        verifySignatures: true,
+      });
+  
       return {
+        rawTx,
+        unsignedTransaction: transaction,
         needClose: true,
-        transaction,
       };
     }
     return {
