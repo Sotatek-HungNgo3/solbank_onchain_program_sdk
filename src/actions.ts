@@ -488,4 +488,37 @@ export class Actions {
 
     return txFee;
   }
+
+  public async closeAssociatedTokenAccount(
+    payer: PublicKey,
+    userAddress: PublicKey,
+    tokenMint: PublicKey = WRAPPED_SOL_MINT,
+  ) {
+    const wrappedUserAddress = await this.findAssociatedTokenAddress(userAddress, tokenMint);
+    const wrappedUserAddressAccInfo = await this.connection.getAccountInfo(wrappedUserAddress);
+    if (wrappedUserAddressAccInfo?.data) {
+      const {blockhash} = await this.connection.getRecentBlockhash();
+      const transaction = new Transaction({
+        recentBlockhash: blockhash,
+        feePayer: payer,
+      });
+      transaction.add(
+        Instructions.closeAccountInstruction({
+          programId: TOKEN_PROGRAM_ID,
+          account: wrappedUserAddress,
+          dest: userAddress,
+          owner: userAddress,
+          signers: [],
+        }),
+      );
+
+      return {
+        needClose: true,
+        transaction,
+      };
+    }
+    return {
+      needClose: false,
+    };
+  }
 }
