@@ -16,6 +16,3 @@ export const InitPoolLayout = [
   BufferLayout.nu64('fee'),
 ];
 
-export const CreateTxNoteLayout = [
-  BufferLayout.blob(18, 'tx_id'),
-]
