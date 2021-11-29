@@ -527,4 +527,17 @@ export class Actions {
       needClose: false,
     };
   }
+
+  public async createTxNoteTransaction(txId: string, depositor: PublicKey) {
+    const {blockhash} = await this.connection.getRecentBlockhash();
+    const transaction = new Transaction({
+      recentBlockhash: blockhash,
+      feePayer: depositor,
+    });
+    transaction.add(
+      Instructions.createInstructionStoreTxId(txId, depositor),
+    );
+
+    return {transaction}
+  }
 }

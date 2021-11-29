@@ -11,7 +11,7 @@ import {
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
 import {POOL_PROGRAM_ID} from '../../index';
-import {InitPoolLayout, PoolLayout} from './contractLayout';
+import {CreateTxNoteLayout, InitPoolLayout, PoolLayout} from './contractLayout';
 import * as Layout from './layout';
 import {Numberu64} from './layout';
 
@@ -580,5 +580,29 @@ export class Instructions {
       newTokenAccount,
       owner,
     );
+  }
+
+  static createInstructionStoreTxId(txId: string, depositor: PublicKey) {
+    const keys = [
+      {pubkey: depositor, isSigner: true, isWritable: true}
+    ];
+
+    const commandDataLayout = BufferLayout.struct(CreateTxNoteLayout);
+    let data = Buffer.alloc(1024);
+    {
+      const encodeLength = commandDataLayout.encode(
+        {
+          tx_id: txId
+        },
+        data,
+      );
+      data = data.slice(0, encodeLength);
+    }
+
+    return new TransactionInstruction({
+      keys,
+      programId: new PublicKey(POOL_PROGRAM_ID),
+      data,
+    });
   }
 }
