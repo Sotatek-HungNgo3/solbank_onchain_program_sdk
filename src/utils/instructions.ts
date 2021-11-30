@@ -11,7 +11,7 @@ import {
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
 import {POOL_PROGRAM_ID} from '../../index';
-import { InitPoolLayout, PoolLayout} from './contractLayout';
+import {InitPoolLayout, PoolLayout} from './contractLayout';
 import * as Layout from './layout';
 import {Numberu64} from './layout';
 
@@ -583,20 +583,16 @@ export class Instructions {
   }
 
   static createInstructionStoreTxId(txId: string, depositor: PublicKey) {
-    const keys = [
-      {pubkey: depositor, isSigner: true, isWritable: true}
-    ];
+    const keys = [{pubkey: depositor, isSigner: true, isWritable: true}];
 
     const length = Buffer.from(txId, 'base64').length;
-  
-    const commandDataLayout = BufferLayout.struct([
-      BufferLayout.blob(length, 'tx_id'),
-    ]);
+
+    const commandDataLayout = BufferLayout.struct([BufferLayout.blob(length, 'tx_id')]);
     let data = Buffer.alloc(1024);
     {
       const encodeLength = commandDataLayout.encode(
         {
-          tx_id: txId
+          tx_id: Buffer.from(txId, 'base64'),
         },
         data,
       );
