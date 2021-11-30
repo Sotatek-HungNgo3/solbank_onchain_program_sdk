@@ -1,6 +1,6 @@
 {
   "name": "@solbank/onchain-program-sdk",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "dist/index.js",
   "deprecated": false,
   "description": "On chain program sdk",
