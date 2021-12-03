@@ -68,6 +68,33 @@ export class Actions {
     };
   }
 
+  public async createAssociatedTokenAccount(payer: PublicKey, userAddress: PublicKey) {
+    const {blockhash} = await this.connection.getRecentBlockhash();
+    const transaction = new Transaction({
+      recentBlockhash: blockhash,
+      feePayer: payer,
+    });
+    const wrappedUserAddress = await this.findAssociatedTokenAddress(userAddress, WRAPPED_SOL_MINT);
+    transaction.add(
+      Instructions.createAssociatedTokenAccountInstruction(
+        payer,
+        userAddress,
+        WRAPPED_SOL_MINT,
+        wrappedUserAddress,
+      )
+    )
+
+    const rawTx = transaction.serialize({
+      requireAllSignatures: false,
+      verifySignatures: true,
+    });
+
+    return {
+      rawTx,
+      unsignedTransaction: transaction,
+    };
+  }
+
   public async deposit(
     payer: PublicKey,
     userAddress: PublicKey,
