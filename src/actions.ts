@@ -271,6 +271,13 @@ export class Actions {
         },
         poolProgramId,
       ),
+      Instructions.closeAccountInstruction({
+        programId: TOKEN_PROGRAM_ID,
+        account: associatedAdminToken,
+        dest: adminAddress,
+        owner: adminAddress,
+        signers: [],
+      }),
     );
 
     const rawTx = transaction.serialize({
