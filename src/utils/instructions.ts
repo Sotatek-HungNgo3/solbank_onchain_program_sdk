@@ -585,14 +585,14 @@ export class Instructions {
   static createInstructionStoreTxId(txId: string, depositor: PublicKey) {
     const keys = [{pubkey: depositor, isSigner: true, isWritable: true}];
 
-    const length = Buffer.from(txId, 'base64').length;
+    const length = Buffer.from(txId, 'utf8').length;
 
     const commandDataLayout = BufferLayout.struct([BufferLayout.blob(length, 'tx_id')]);
     let data = Buffer.alloc(1024);
     {
       const encodeLength = commandDataLayout.encode(
         {
-          tx_id: Buffer.from(txId, 'base64'),
+          tx_id: Buffer.from(txId, 'utf8'),
         },
         data,
       );
