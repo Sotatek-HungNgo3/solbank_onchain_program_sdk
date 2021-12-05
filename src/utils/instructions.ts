@@ -382,6 +382,7 @@ export class Instructions {
     },
     inputData: {
       outcoming_amount: number;
+      funding_amount: number;
     },
     poolProgramId: PublicKey,
   ): TransactionInstruction {
@@ -407,6 +408,7 @@ export class Instructions {
     const commandDataLayout = BufferLayout.struct([
       BufferLayout.u8('instruction'),
       Layout.uint64('outcoming_amount'),
+      Layout.uint64('funding_amount'),
     ]);
 
     let data = Buffer.alloc(1024);
@@ -415,6 +417,7 @@ export class Instructions {
         {
           instruction: 2, // Withdraw
           outcoming_amount: new Numberu64(inputData.outcoming_amount).toBuffer(),
+          funding_amount: new Numberu64(inputData.funding_amount).toBuffer(),
         },
         data,
       );
