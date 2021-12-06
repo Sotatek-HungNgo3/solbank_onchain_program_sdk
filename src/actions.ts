@@ -174,7 +174,6 @@ export class Actions {
     withdrawAddress: PublicKey,
     poolAddress: PublicKey,
     amount: number,
-    fundingAmount: number,
   ) {
     const {blockhash} = await this.connection.getRecentBlockhash();
     const transaction = new Transaction({
@@ -214,8 +213,7 @@ export class Actions {
           tokenProgramId: TOKEN_PROGRAM_ID,
         },
         {
-          outcoming_amount: amount * LAMPORTS_PER_SOL,
-          funding_amount: fundingAmount * LAMPORTS_PER_SOL
+          outcoming_amount: amount * LAMPORTS_PER_SOL
         },
         poolProgramId,
       ),
