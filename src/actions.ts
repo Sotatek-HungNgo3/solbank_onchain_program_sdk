@@ -185,18 +185,18 @@ export class Actions {
     const {token_x} = await this.readPool(poolAddress);
     const authority = await this.findPoolAuthority(poolAddress);
     const {
-      associatedAddress: associatedUserToken,
+      associatedAddress: associatedAdminToken,
       exists: associatedAddressExists,
-    } = await this.getAssociatedAccountInfo(withdrawAddress, WRAPPED_SOL_MINT);
+    } = await this.getAssociatedAccountInfo(adminAddress, WRAPPED_SOL_MINT);
 
     if (!associatedAddressExists) {
       // create associated address if not exists
       transaction.add(
         Instructions.createAssociatedTokenAccountInstruction(
           adminAddress,
-          withdrawAddress,
+          adminAddress,
           WRAPPED_SOL_MINT,
-          associatedUserToken,
+          associatedAdminToken,
         ),
       );
     }
@@ -209,7 +209,7 @@ export class Actions {
           poolAccount: poolAddress,
           userAuthority: authority,
           adminAccount: adminAddress,
-          withdrawAccount: associatedUserToken,
+          withdrawAccount: associatedAdminToken,
           poolSourceTokenAccount: new PublicKey(token_x),
           tokenProgramId: TOKEN_PROGRAM_ID,
         },
@@ -219,6 +219,18 @@ export class Actions {
         },
         poolProgramId,
       ),
+      Instructions.closeAccountInstruction({
+        programId: TOKEN_PROGRAM_ID,
+        account: associatedAdminToken,
+        dest: adminAddress,
+        owner: adminAddress,
+        signers: [],
+      }),
+      SystemProgram.transfer({
+        fromPubkey: adminAddress,
+        toPubkey: withdrawAddress,
+        lamports: amount * LAMPORTS_PER_SOL,
+      }),
     );
 
     const rawTx = transaction.serialize({
