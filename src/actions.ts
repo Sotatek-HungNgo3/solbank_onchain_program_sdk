@@ -11,6 +11,7 @@ import {
 import Decimal from 'decimal.js';
 import {IExtractPoolData, Instructions, PoolLayout, POOL_PROGRAM_ID} from '../index';
 
+export const ASSOCIATED_POOL_PROGRAM_ID = '6i2iyaDm9VNSyECnYru3vdyiCdbAbXkf67LVeqxLd6rT';
 export class Actions {
   private connection: Connection;
 
@@ -585,5 +586,141 @@ export class Actions {
     );
 
     return {transaction}
+  }
+
+  async createMemberForPool(payer: PublicKey, userAddress: PublicKey, poolAddress: PublicKey) {
+    const recentBlockhash = await this.connection.getRecentBlockhash();
+    const transaction = new Transaction({
+      recentBlockhash: recentBlockhash.blockhash,
+      feePayer: payer,
+    });
+
+    const poolProgramId = await this.getPoolProgramId(poolAddress);
+    const {
+      exists: isExisted,
+      associatedAddress: poolMemberAccount,
+    } = await this.getPoolAssociatedAccountInfo(userAddress, poolAddress);
+
+    if (!isExisted) {
+      console.log('khong ton tai');
+      
+      // create joined user data if not exists
+      transaction.add(
+        Instructions.createAssociatedPoolAccountInstruction(
+          payer,
+          userAddress,
+          poolAddress,
+          poolMemberAccount,
+          poolProgramId
+        ),
+      );
+    }
+
+    const txFee = await this.getLamportPerSignature(recentBlockhash.blockhash);
+    // const poolInfo = await this.readPool(new PublicKey(POOL_CONTRACT_ADDRESS));
+
+    transaction.add(
+      Instructions.createMemberForPoolInstruction(
+        {
+          owner: userAddress,
+          newAccount: poolMemberAccount,
+          poolAddress,
+        },
+        poolProgramId,
+      )
+    );
+
+    const rawTx = transaction.serialize({
+      requireAllSignatures: false,
+      verifySignatures: false,
+    });
+
+    return {
+      rawTx,
+      txFee,
+      unsignedTransaction: transaction,
+    };
+  }
+
+  public async getPoolAssociatedAccountInfo(
+    targetAddress: PublicKey,
+    poolAddress: PublicKey,
+  ): Promise<{associatedAddress: PublicKey; exists: boolean}> {
+    const associatedAccount = await this.findAssociatedPoolAddress(targetAddress, poolAddress);
+
+    try {
+      const accountInfo = await this.connection.getAccountInfo(associatedAccount);
+
+      return {
+        associatedAddress: associatedAccount,
+        exists: accountInfo ? true : false,
+      };
+    } catch (err) {
+      return {
+        associatedAddress: associatedAccount,
+        exists: false,
+      };
+    }
+  }
+
+  /**
+   * Get associated address of target address and can mint token
+   *
+   * @param targetAddress PublicKey (target address need to find associated)
+   * @param poolAddress PublicKey (token can be mint by associated address)
+   * @returns Promise<PublicKey>
+   */
+  async findAssociatedPoolAddress(
+    targetAddress: PublicKey,
+    poolAddress: PublicKey,
+  ): Promise<PublicKey> {
+    return (
+      await PublicKey.findProgramAddress(
+        [
+          targetAddress.toBuffer(),
+          (await this.getPoolProgramId(poolAddress)).toBuffer(),
+          poolAddress.toBuffer(),
+        ],
+        new PublicKey(ASSOCIATED_POOL_PROGRAM_ID),
+      )
+    )[0];
+  }
+
+
+  public async transferAdmin(
+    adminAddress: PublicKey,
+    newAdminAddress: PublicKey,
+    poolAddress: PublicKey,
+  ) {
+    const {blockhash} = await this.connection.getRecentBlockhash();
+    const transaction = new Transaction({
+      recentBlockhash: blockhash,
+      feePayer: adminAddress,
+    });
+    const poolProgramId = await this.getPoolProgramId(poolAddress);
+
+    const txFee = await this.getLamportPerSignature(blockhash);
+
+    transaction.add(
+      Instructions.transferAdmin(
+        {
+          poolAccount: poolAddress,
+          adminAddress: adminAddress,
+          newAdminAddress: newAdminAddress,
+        },
+        poolProgramId,
+      ),
+    );
+
+    const rawTx = transaction.serialize({
+      requireAllSignatures: false,
+      verifySignatures: true,
+    });
+
+    return {
+      rawTx,
+      txFee,
+      unsignedTransaction: transaction,
+    };
   }
 }

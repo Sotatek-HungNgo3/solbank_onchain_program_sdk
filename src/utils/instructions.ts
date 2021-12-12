@@ -15,6 +15,8 @@ import {InitPoolLayout, PoolLayout} from './contractLayout';
 import * as Layout from './layout';
 import {Numberu64} from './layout';
 
+const ASSOCIATED_POOL_PROGRAM_ID = '6i2iyaDm9VNSyECnYru3vdyiCdbAbXkf67LVeqxLd6rT';
+
 export class Instructions {
   static createDepositInstruction(
     accounts: {
@@ -602,6 +604,103 @@ export class Instructions {
     return new TransactionInstruction({
       keys,
       programId: new PublicKey(POOL_PROGRAM_ID),
+      data,
+    });
+  }
+
+  static createAssociatedPoolAccountInstruction(
+    payer: PublicKey,
+    owner: PublicKey,
+    poolAddress: PublicKey,
+    associatedTokenAddress: PublicKey,
+    programId: PublicKey,
+  ): TransactionInstruction {
+    const keys = [
+      {pubkey: payer, isSigner: true, isWritable: true},
+      {pubkey: associatedTokenAddress, isSigner: false, isWritable: true},
+      {pubkey: owner, isSigner: false, isWritable: false},
+      {pubkey: poolAddress, isSigner: false, isWritable: false},
+      {pubkey: SystemProgram.programId, isSigner: false, isWritable: false},
+      {pubkey: programId, isSigner: false, isWritable: false},
+      {pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false},
+    ];
+
+    const data = Buffer.alloc(0);
+
+    return new TransactionInstruction({
+      keys,
+      programId: new PublicKey(ASSOCIATED_POOL_PROGRAM_ID),
+      data,
+    });
+  }
+
+  static createMemberForPoolInstruction(
+    accounts: {
+      owner: PublicKey,
+      newAccount: PublicKey,
+      poolAddress: PublicKey,
+    },
+    programId: PublicKey,
+  ): TransactionInstruction {
+    const keys = [
+      {pubkey: accounts.newAccount, isSigner: false, isWritable: true},
+      {pubkey: accounts.poolAddress, isSigner: false, isWritable: false},
+      {pubkey: accounts.owner, isSigner: false, isWritable: false},
+      {pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false},
+    ];
+
+    const commandDataLayout = BufferLayout.struct([
+      BufferLayout.u8('instruction'),
+    ]);
+    let data = Buffer.alloc(1024);
+    {
+      const encodeLength = commandDataLayout.encode(
+        {
+          instruction: 101, // Transfer Reward
+        },
+        data,
+      );
+      data = data.slice(0, encodeLength);
+    }
+
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+
+  static transferAdmin(
+    accounts: {
+      poolAccount: PublicKey;
+      adminAddress: PublicKey;
+      newAdminAddress: PublicKey;
+    },
+    poolProgramId: PublicKey,
+  ): TransactionInstruction {
+    const {poolAccount, adminAddress, newAdminAddress} = accounts;
+    const keys = [
+      {pubkey: poolAccount, isSigner: false, isWritable: true},
+      {pubkey: adminAddress, isSigner: true, isWritable: true},
+      {pubkey: newAdminAddress, isSigner: false, isWritable: true},
+    ];
+
+    const commandDataLayout = BufferLayout.struct([BufferLayout.u8('instruction')]);
+
+    let data = Buffer.alloc(1024);
+    {
+      const encodeLength = commandDataLayout.encode(
+        {
+          instruction: 5, // Transfer Admin
+        },
+        data,
+      );
+      data = data.slice(0, encodeLength);
+    }
+
+    return new TransactionInstruction({
+      keys,
+      programId: poolProgramId,
       data,
     });
   }
